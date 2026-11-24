@@ -499,6 +499,33 @@
 
   // ?lang=ky или ?lang=en переводит страницу; ?lang=ru и адрес без параметра остаются русскими
   var lang = new URLSearchParams(location.search).get("lang");
+  var current = has.call(DICT, lang) ? lang : "ru";
+
+  // Переключатель языка в навбаре: select.lang-select со значениями ru, ky, en.
+  // Показываем в нём язык текущей страницы.
+  function markSelects() {
+    var list = document.querySelectorAll("select.lang-select");
+    for (var i = 0; i < list.length; i++) list[i].value = current;
+  }
+
+  // При выборе языка меняем ?lang в адресе; для русского убираем параметр
+  document.addEventListener("change", function (e) {
+    var el = e.target;
+    if (!el || !el.matches || !el.matches("select.lang-select")) return;
+    var url = new URL(location.href);
+    if (el.value === "ru") url.searchParams.delete("lang");
+    else url.searchParams.set("lang", el.value);
+    location.href = url.pathname + url.search + url.hash;
+  });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", markSelects);
+  } else {
+    markSelects();
+  }
+  // Кнопка «Назад» в браузере возвращает старое значение списка, поправляем его
+  window.addEventListener("pageshow", markSelects);
+
   if (!has.call(DICT, lang)) return;
 
   var MAP = DICT[lang];
